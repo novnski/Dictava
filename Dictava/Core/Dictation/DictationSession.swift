@@ -25,6 +25,7 @@ final class DictationSession: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     private var liveTextCancellable: AnyCancellable?
+    private var silenceCancellable: AnyCancellable?
     private var silenceTimer: Timer?
     private var longDictationTimer: Timer?
 
@@ -134,6 +135,7 @@ final class DictationSession: ObservableObject {
     func stopDictation() {
         guard state.isActive else { return }
 
+        silenceCancellable = nil
         silenceTimer?.invalidate()
         silenceTimer = nil
         longDictationTimer?.invalidate()
@@ -213,17 +215,31 @@ final class DictationSession: ObservableObject {
 
     private func startSilenceDetection() {
         let timeout = settingsStore.silenceTimeoutSeconds
+        let silenceThreshold: Float = 0.05
 
-        // Monitor audio levels for silence
-        audioEngine.$audioLevel
-            .debounce(for: .seconds(timeout), scheduler: DispatchQueue.main)
-            .filter { $0 < 0.05 }
-            .first()
-            .sink { [weak self] _ in
+        // When audio level drops below threshold, start a timer.
+        // When it goes above threshold, cancel the timer.
+        // If the timer fires (silence lasted longer than timeout), stop dictation.
+        silenceCancellable = audioEngine.$audioLevel
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] level in
                 guard let self, self.state == .listening else { return }
-                self.stopDictation()
+                if level < silenceThreshold {
+                    // Below threshold — start timer if not already running
+                    if self.silenceTimer == nil {
+                        self.silenceTimer = Timer.scheduledTimer(withTimeInterval: timeout, repeats: false) { [weak self] _ in
+                            Task { @MainActor [weak self] in
+                                guard let self, self.state == .listening else { return }
+                                self.stopDictation()
+                            }
+                        }
+                    }
+                } else {
+                    // Above threshold — reset timer
+                    self.silenceTimer?.invalidate()
+                    self.silenceTimer = nil
+                }
             }
-            .store(in: &cancellables)
     }
 
     private func startLongDictationWarning() {

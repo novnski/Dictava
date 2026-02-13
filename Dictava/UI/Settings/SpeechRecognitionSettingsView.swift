@@ -33,14 +33,20 @@ struct SpeechRecognitionSettingsView: View {
                 Text("Whisper Model")
             }
 
-            Section("Silence Detection") {
+            Section {
+                Text("Will stop and paste the text into the selected input after this many seconds of silence. Gives you time to pause and think without cutting you off.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
                 HStack {
                     Text("Silence timeout:")
-                    Slider(value: $settingsStore.silenceTimeoutSeconds, in: 1...10, step: 0.5)
-                    Text("\(settingsStore.silenceTimeoutSeconds, specifier: "%.1f")s")
+                    Slider(value: $settingsStore.silenceTimeoutSeconds, in: 5...20, step: 1)
+                    Text("\(Int(settingsStore.silenceTimeoutSeconds))s")
                         .monospacedDigit()
-                        .frame(width: 35)
+                        .frame(width: 30)
                 }
+            } header: {
+                Text("Silence Detection")
             }
         }
         .formStyle(.grouped)
