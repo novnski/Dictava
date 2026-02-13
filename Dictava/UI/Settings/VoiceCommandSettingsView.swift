@@ -1,18 +1,7 @@
 import SwiftUI
 
 struct VoiceCommandSettingsView: View {
-    private let commands: [(name: String, triggers: String, action: String)] = [
-        ("Delete/Scratch", "\"delete that\", \"scratch that\"", "Undo (Cmd+Z)"),
-        ("Undo", "\"undo that\", \"undo\"", "Undo (Cmd+Z)"),
-        ("Select All", "\"select all\"", "Select All (Cmd+A)"),
-        ("New Line", "\"new line\"", "Insert line break"),
-        ("New Paragraph", "\"new paragraph\"", "Insert double line break"),
-        ("Stop Listening", "\"stop listening\"", "End dictation session"),
-        ("Make Shorter", "\"make it shorter\"", "LLM rewrite (shorter)"),
-        ("Make Formal", "\"make it formal\"", "LLM tone shift (formal)"),
-        ("Make Casual", "\"make it casual\"", "LLM tone shift (casual)"),
-        ("Fix Grammar", "\"fix grammar\"", "LLM grammar cleanup"),
-    ]
+    @EnvironmentObject var settingsStore: SettingsStore
 
     var body: some View {
         Form {
@@ -21,19 +10,20 @@ struct VoiceCommandSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                ForEach(commands, id: \.name) { command in
-                    HStack {
+                ForEach(VoiceCommandParser.allDefinitions, id: \.name) { definition in
+                    let enabled = Binding(
+                        get: { settingsStore.isVoiceCommandEnabled(definition.name) },
+                        set: { settingsStore.setVoiceCommandEnabled(definition.name, enabled: $0) }
+                    )
+
+                    Toggle(isOn: enabled) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(command.name)
+                            Text(definition.name.replacingOccurrences(of: "llmRewrite.", with: ""))
                                 .fontWeight(.medium)
-                            Text(command.triggers)
+                            Text(definition.triggers.map { "\"\($0)\"" }.joined(separator: ", "))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
-                        Spacer()
-                        Text(command.action)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 2)
                 }

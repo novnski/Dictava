@@ -36,31 +36,40 @@ struct SnippetSettingsView: View {
                 }
 
                 ForEach(snippetStore.snippets) { snippet in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(snippet.trigger)
-                            .fontWeight(.medium)
-                        Text(snippet.replacement)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                    }
-                    .padding(.vertical, 2)
-                    .contextMenu {
-                        Button("Edit") {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(snippet.trigger)
+                                .fontWeight(.medium)
+                            Text(snippet.replacement)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                        }
+                        Spacer()
+                        Button {
                             editTrigger = snippet.trigger
                             editReplacement = snippet.replacement
                             selectedSnippet = snippet
                             isEditing = true
+                        } label: {
+                            Image(systemName: "pencil")
+                                .foregroundStyle(.secondary)
                         }
-                        Button("Delete", role: .destructive) {
+                        .buttonStyle(.borderless)
+                        .help("Edit snippet")
+
+                        Button(role: .destructive) {
                             if let index = snippetStore.snippets.firstIndex(where: { $0.id == snippet.id }) {
                                 snippetStore.removeSnippet(at: IndexSet(integer: index))
                             }
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundStyle(.red.opacity(0.7))
                         }
+                        .buttonStyle(.borderless)
+                        .help("Delete snippet")
                     }
-                }
-                .onDelete { offsets in
-                    snippetStore.removeSnippet(at: offsets)
+                    .padding(.vertical, 2)
                 }
             } header: {
                 Text("Snippets")

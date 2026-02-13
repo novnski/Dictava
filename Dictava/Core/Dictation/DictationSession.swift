@@ -35,7 +35,7 @@ final class DictationSession: ObservableObject {
 
         // Build the text processing pipeline
         textPipeline = TextPipeline()
-        textPipeline.addProcessor(VoiceCommandParser())
+        textPipeline.addProcessor(VoiceCommandParser(settingsStore: settingsStore))
         textPipeline.addProcessor(PunctuationHandler())
         textPipeline.addProcessor(SnippetExpander(snippetStore: snippetStore))
         textPipeline.addProcessor(FillerWordFilter())
