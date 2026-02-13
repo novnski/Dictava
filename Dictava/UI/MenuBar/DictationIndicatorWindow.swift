@@ -89,6 +89,10 @@ struct DictationIndicatorView: View {
         .padding(.vertical, 10)
         .background(.ultraThinMaterial)
         .cornerRadius(22)
+        .overlay(
+            RoundedRectangle(cornerRadius: 22)
+                .stroke(.white.opacity(0.25), lineWidth: 1)
+        )
         .shadow(color: .black.opacity(0.15), radius: 12, y: 4)
         .animation(.easeInOut(duration: 0.2), value: session.state)
     }
