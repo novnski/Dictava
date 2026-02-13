@@ -17,6 +17,21 @@ Local voice dictation for macOS. Press a hotkey, speak, and text appears at your
 - **Multiple Whisper models** — Choose from Tiny (~39 MB, fastest) to Large v3 Turbo (~809 MB, most accurate)
 - **Menu bar app** — Lives in the system tray with no dock icon. Floating pill indicator shows recording state without stealing focus
 
+## Privacy
+
+Dictava is completely local and private by design:
+
+- **No account required** — no sign-up, no login, no authentication of any kind
+- **No telemetry** — zero analytics, zero tracking, zero usage reporting
+- **No network calls** — the app makes no HTTP requests whatsoever (the codebase contains no `URLSession`, `URLRequest`, or any networking code)
+- **No data collection** — your voice, transcriptions, snippets, and settings never leave your Mac
+- **No cloud processing** — speech recognition runs entirely on-device via WhisperKit CoreML models on Apple Silicon
+- **No third-party services** — no Firebase, no Sentry, no analytics SDKs, nothing
+- **Fully offline** — works without an internet connection after the one-time model download
+- **Open source** — the entire codebase is auditable
+
+The only time Dictava touches the network is the initial WhisperKit model download from HuggingFace. After that, it never connects to the internet again.
+
 ## Requirements
 
 - macOS 13.0+ (Ventura or later)
