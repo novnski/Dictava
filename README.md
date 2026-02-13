@@ -2,6 +2,28 @@
 
 Local voice dictation for macOS. Press a hotkey, speak, and text appears at your cursor — in any app. Powered by [WhisperKit](https://github.com/argmaxinc/WhisperKit) running on Apple Silicon. No internet required, no data leaves your Mac.
 
+## How It Works
+
+```
+Option+Space → Microphone → WhisperKit (on-device) → Text Pipeline → Paste at cursor
+```
+
+1. **You press Option+Space** — a floating pill indicator appears with a pulsing red dot
+2. **Your voice is captured** — `AVAudioEngine` records microphone input at 16kHz mono. Audio is buffered in memory only, never saved to disk
+3. **WhisperKit transcribes locally** — audio chunks are fed to a CoreML Whisper model running on the Neural Engine. Partial results appear in real-time every 1.5 seconds
+4. **You stop** — either press Option+Space again, or silence detection triggers automatically after a configurable timeout
+5. **Text is cleaned up** — the transcription passes through a pipeline that strips non-speech artifacts (`[Silence]`, `[clears throat]`), detects voice commands, converts spoken punctuation to symbols, removes filler words, expands snippets, and applies vocabulary corrections
+6. **Text is injected at your cursor** — this is the clever part:
+   - Dictava saves your current clipboard contents
+   - Places the transcribed text on the clipboard
+   - Simulates **Cmd+V** (paste) using a low-level `CGEvent` keystroke
+   - Waits 200ms for the paste to complete
+   - **Restores your original clipboard**
+
+   This is why pressing Cmd+V after dictation pastes whatever you had copied *before* — Dictava doesn't leave your transcription on the clipboard. It borrows it for a split second and gives it back.
+
+All synthetic keyboard events are tagged with a unique marker (`0x44494354` — "DICT" in hex) to avoid feedback loops.
+
 ## Features
 
 - **Fully local & private** — WhisperKit CoreML models run entirely on-device. No cloud APIs, no network requests, no subscriptions
