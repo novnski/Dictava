@@ -7,6 +7,7 @@ final class StatusBarController: NSObject {
     private var statusItem: NSStatusItem
     private var popover: NSPopover
     private var cancellables = Set<AnyCancellable>()
+    private var eventMonitor: Any?
 
     init(dictationSession: DictationSession, modelManager: ModelManager, settingsStore: SettingsStore, transcriptionLogStore: TranscriptionLogStore) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -42,10 +43,21 @@ final class StatusBarController: NSObject {
 
     @objc private func togglePopover() {
         if popover.isShown {
-            popover.performClose(nil)
+            closePopoverAndStopMonitor()
         } else if let button = statusItem.button {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+                self?.closePopoverAndStopMonitor()
+            }
         }
+    }
+
+    private func closePopoverAndStopMonitor() {
+        popover.performClose(nil)
+        if let eventMonitor {
+            NSEvent.removeMonitor(eventMonitor)
+        }
+        eventMonitor = nil
     }
 
     private func updateIcon(for state: DictationState) {
